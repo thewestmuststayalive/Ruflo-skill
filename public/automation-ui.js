@@ -6,7 +6,7 @@ function render(data){
   $('auto-schedule').textContent=data.schedule;
   $('auto-toggle').textContent=data.enabled?'Sæt på pause':'Aktivér automatisk udgivelse';
   $('auto-toggle').disabled=!data.enabled&&!data.ready;
-  $('auto-help').textContent=data.ready?'Ved aktivering genereres ét AI-billede pr. opslag. API-forbrug betales via din AI-konto.':'Facebook-sideadgang og en API-nøgle til AI-billeder skal tilføjes på hostingkontoen, før automatik kan aktiveres.';
+  $('auto-help').textContent=data.imagesEnabled ? (data.ready?'Ved aktivering genereres ét AI-billede pr. opslag. API-forbrug betales via din AI-konto.':'Facebook-sideadgang og en API-nøgle til AI-billeder skal tilføjes før aktivering.') : (data.ready?'Automatikken udgiver tekstopslag. Billedgenerering er slået fra og bruger ingen AI-konto.':'Forbind Facebook-siden for at aktivere automatiske tekstopslag. Billedgenerering er slået fra.');
   $('jobs').replaceChildren();
   const jobs=[...data.jobs].sort((a,b)=>a.due.localeCompare(b.due));
   for(const job of jobs){
@@ -28,7 +28,8 @@ async function action(data){
 }
 $('auto-toggle').onclick=()=>{
   if(!state)return;
-  if(!state.enabled&&!confirm('Aktivér tre offentlige opslag om ugen med AI-genererede billeder? Det bruger betalt AI-adgang og udgiver automatisk uden godkendelse af hvert opslag.'))return;
+  const confirmation=state.imagesEnabled?'Aktivér tre offentlige opslag om ugen med AI-genererede billeder? Det bruger betalt AI-adgang og udgiver automatisk uden godkendelse af hvert opslag.':'Aktivér tre offentlige tekstopslag om ugen på din Facebook-side uden godkendelse af hvert opslag? Der genereres ingen billeder.';
+  if(!state.enabled&&!confirm(confirmation))return;
   action({action:state.enabled?'pause':'enable'});
 };
 async function refresh(){try{const r=await fetch('/api/automation');if(!r.ok)throw new Error();render(await r.json());}catch{$('auto-result').textContent='Kontrolpanelet kunne ikke hentes. Genindlæs siden.';}}

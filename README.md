@@ -1,13 +1,13 @@
 # BW Bilpleje · automatisk Facebook-markedsføring
 
-En webapp til BW Bilpleje i Slotsbjergby, Slagelse og omegn. Lav manuelle opslag, eller aktivér tre automatiske opslag om ugen med billedgenerering. Kundernes booking foregår på **42 30 01 68** eller [Messenger](https://m.me/61595933881305).
+En webapp til BW Bilpleje i Slotsbjergby, Slagelse og omegn. Lav manuelle opslag, eller aktivér tre automatiske tekstopslag om ugen. Billedgenerering er valgfri og slået fra som standard. Kundernes booking foregår på **42 30 01 68** eller [Messenger](https://m.me/61595933881305).
 
 ## Hvad den gør
 
 - Gemmer en rullende fireugers plan: mandag, onsdag og fredag kl. 18 i Europe/Copenhagen, inklusive sommer-/vintertid.
 - Skriver opslag fra faktuelle skabeloner med dine pakker, priser, tilvalg og forbehold. Teksterne roterer mellem BASIS, GRUNDIG og DYBDERENS; de er ikke AI-skrevne fritekster.
-- Laver et nyt illustrativt bilinteriør med OpenAI Images API pr. automatisk opslag. Teksten mærker billedet som AI-genereret. Ingen opdigtede anmeldelser eller før-/efterresultater.
-- Udgiver billede og tekst på den valgte Facebook-side.
+- Kan valgfrit lave et nyt illustrativt bilinteriør via OpenAI Images API, hvis billedgenerering aktiveres. Teksten mærker da billedet som AI-genereret. Ingen opdigtede anmeldelser eller før-/efterresultater.
+- Udgiver tekst på den valgte Facebook-side, eller tekst og billede når billedgenerering er aktiveret.
 - Gemmer plan og historik i SQLite på en vedvarende disk. Automatik starter sat på pause ved første installation.
 - Pauser ved fejl. Usikre resultater efter netværksfejl/genstart genudgives ikke automatisk. Mere end seks timer forsinkede opslag springes over.
 - Beskytter kontrolpanelet med HTTP Basic-login over hostingudbyderens HTTPS. Brugernavn: `admin`.
@@ -20,10 +20,10 @@ Konfigurationen i `render.yaml` opretter én betalt, konstant kørende Node-webs
 
 1. Opret en konto på [Render](https://render.com/) og forbind GitHub med adgang til dette repository.
 2. Opret en **Blueprint** fra `thewestmuststayalive/Ruflo-skill`, branch `main`. Render læser `render.yaml`.
-3. Udfyld de efterspurgte miljøvariabler fra Meta og OpenAI. Vælg en aktuelt understøttet `META_GRAPH_VERSION` fra dit Meta-appdashboard (format `vXX.0`). Del ikke nøgler i chat eller Git.
+3. Blueprinten kan oprettes uden Facebook- og AI-nøgler. Billedgenerering er slået fra (`AUTO_IMAGES_ENABLED=false`). Tilføj Meta-oplysninger efter oprettelsen som beskrevet nedenfor; der udgives intet uden Facebook-forbindelse og aktivering.
 4. Godkend hostingprisen og opret tjenesten. Render tildeler en HTTPS-adresse; `RENDER_EXTERNAL_URL` bruges automatisk. Ved eget domæne: sæt `PUBLIC_URL` til den præcise HTTPS-adresse.
 5. Find den automatisk genererede `APP_PASSWORD` i Render → tjenesten → Environment. Åbn tjenestens adresse, og log ind som `admin` med den adgangskode.
-6. Forbind Facebook-siden som nedenfor. Klik derefter **Aktivér automatisk udgivelse**, når du accepterer planen og AI-forbruget. Ingen opslag udgives inden aktivering.
+6. Forbind Facebook-siden som nedenfor. Klik derefter **Aktivér automatisk udgivelse**, når du accepterer planen. Ingen opslag udgives inden aktivering.
 
 Brug kun én instans af tjenesten. Disken indeholder både plan/historik og det krypterede Facebook-sidetoken; tag backup før diskændringer. Automatiske deploys er slået fra. Nye GitHub-versioner skal deployes manuelt i Render. Undgå at klone en aktiv disk til en anden kørende tjeneste: det kan medføre dobbelte opslag.
 
@@ -31,7 +31,7 @@ Brug kun én instans af tjenesten. Disken indeholder både plan/historik og det 
 
 Meta kræver en app med relevante Pages API- og Facebook Login-funktioner. Opret den i [Meta for Developers](https://developers.facebook.com/). Meta kan ændre sine skærmbilleder og adgangskrav.
 
-1. Tilføj `FACEBOOK_APP_ID` og `FACEBOOK_APP_SECRET` til Render → Environment. App secret skal forblive hemmelig.
+1. Tilføj `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` og en aktuelt understøttet `META_GRAPH_VERSION` (format `vXX.0`) fra Meta-appdashboardet til Render → Environment. App secret skal forblive hemmelig. Gem og genstart/deploy tjenesten.
 2. Konfigurér appens webadresse/domæne og tilføj præcis `https://DIN-RENDER-ADRESSE/facebook/callback` som gyldig OAuth-redirectadresse for Facebook Login. Brug den faktiske adresse, ikke eksemplet.
 3. Loginflowet anmoder om `pages_show_list`, `pages_read_engagement` og `pages_manage_posts`. Din Facebook-bruger skal have tilstrækkelig adgang til siden og i udviklingstilstand normalt også en rolle i Meta-appen. Brug uden app-rolle kan kræve App Review, Advanced Access og virksomhedsverifikation.
 4. Åbn værktøjet, klik **Forbind Facebook-side**, og godkend adgang til siden med ID `61595933881305`. Der vælges aldrig automatisk en anden side.
@@ -41,9 +41,9 @@ For avanceret manuel opsætning kan `FACEBOOK_PAGE_ACCESS_TOKEN` bruges i stedet
 
 ## AI-billeder og omkostninger
 
-Sæt `AI_IMAGE_API_KEY` til en OpenAI API-nøgle i Render → Environment. API-forbrug faktureres separat fra et ChatGPT-abonnement. Modellen er `gpt-image-1`, ét 1024×1024-billede i lav kvalitet pr. planlagt opslag. Kontoen skal have adgang til modellen og eventuel krævet verifikation. Se aktuelle priser og forbrugsgrænser hos udbyderen. Der er ikke en indbygget månedsgrænse i kroner; sæt forbrugsgrænser hos udbyderen og hold øje med faktureringen.
+Dette er valgfrit. Der kræves ingen AI-konto eller AI-betaling for tekstopslag. Hvis billeder ønskes senere: sæt `AUTO_IMAGES_ENABLED=true` og `AI_IMAGE_API_KEY` til en OpenAI API-nøgle i Render → Environment. API-forbrug faktureres separat fra et ChatGPT-abonnement. Modellen er `gpt-image-1`, ét 1024×1024-billede i lav kvalitet pr. planlagt opslag. Kontoen skal have adgang til modellen og eventuel krævet verifikation. Se aktuelle priser og forbrugsgrænser hos udbyderen. Der er ikke en indbygget månedsgrænse i kroner; sæt forbrugsgrænser hos udbyderen og hold øje med faktureringen.
 
-Automatiske opslag indeholder generiske AI-illustrationer, ikke dine kundebilleder. Dine egne billeder kan bruges i den manuelle editor. Et udløbet token, utilstrækkelig modelsaldo eller en tjenestefejl kan sætte automatik på pause; kontrolpanelet skal derfor stadig tilses indimellem.
+Når billedgenerering er aktiveret, indeholder automatiske opslag generiske AI-illustrationer, ikke dine kundebilleder. Dine egne billeder kan bruges i den manuelle editor. Et udløbet token, utilstrækkelig modelsaldo eller en tjenestefejl kan sætte automatik på pause; kontrolpanelet skal derfor stadig tilses indimellem.
 
 ## Lokal udvikling / Windows
 
@@ -59,13 +59,13 @@ npm ci --ignore-scripts
 npm start
 ```
 
-Lokalt åbnes port 3000. Preview og opslagsplan virker uden konti; aktivering kræver både Facebook- og AI-adgang. Standardbindingen er `127.0.0.1`. Hosting med `HOST=0.0.0.0` kræver `APP_PASSWORD` på mindst 20 tegn og en HTTPS-reverse proxy.
+Lokalt åbnes port 3000. Preview og opslagsplan virker uden konti; aktivering kræver Facebook-adgang. AI-adgang er kun nødvendig, hvis billedgenerering aktiveres. Standardbindingen er `127.0.0.1`. Hosting med `HOST=0.0.0.0` kræver `APP_PASSWORD` på mindst 20 tegn og en HTTPS-reverse proxy.
 
 `DATA_DIR` indeholder databasen og skal være vedvarende på hosting. Ved lokal udvikling bruges `./data`, som er udeladt fra Git. `.env` er også udeladt fra Git.
 
 ## Priser og indhold
 
-`public/business.js` indeholder pakker, priser og betingelser. Stop automatik før prisændringer. Allerede planlagte opslag er snapshots af den gamle tekst; de ændres ikke ved en kodeopdatering. Opdatér eksisterende kø via en særskilt datamigrering før genaktivering ved prisændringer. Ingen ændring af en pris må præsenteres som gældende i gamle planlagte opslag uden denne opdatering.
+`public/business.js` indeholder pakker, priser og betingelser. Stop automatik før prisændringer. Genstart/deploy efter ændringen; planlagte opslag i køen opdateres fra de nye skabeloner ved næste opdatering af planen. Udgivne opslag og historik ændres ikke.
 
 ## Test og begrænsninger
 

@@ -77,10 +77,11 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const host=process.env.HOST||'127.0.0.1';
   if(host!=='127.0.0.1'&&(!process.env.APP_PASSWORD||process.env.APP_PASSWORD.length<20))throw new Error('Offentlig hosting kræver APP_PASSWORD på mindst 20 tegn.');
   const token=process.env.FACEBOOK_PAGE_ACCESS_TOKEN,pageId=process.env.FACEBOOK_PAGE_ID,version=process.env.META_GRAPH_VERSION;
+  const imagesEnabled=process.env.AUTO_IMAGES_ENABLED==='true';
   let facebookLogin;
   const getToken=()=>facebookLogin?.token()||token;
-  const ready=()=>Boolean(getToken()&&/^\d+$/.test(pageId||'')&&/^v\d+\.\d+$/.test(version||'')&&process.env.AI_IMAGE_API_KEY);
-  const automation=new Automation({path:join(process.env.DATA_DIR||'./data','automation.sqlite'),publish:data=>createPublisher({token:getToken(),pageId,version})(data),generateImage,ready});
+  const ready=()=>Boolean(getToken()&&/^\d+$/.test(pageId||'')&&/^v\d+\.\d+$/.test(version||'')&&(!imagesEnabled||process.env.AI_IMAGE_API_KEY));
+  const automation=new Automation({path:join(process.env.DATA_DIR||'./data','automation.sqlite'),publish:data=>createPublisher({token:getToken(),pageId,version})(data),generateImage,ready,imagesEnabled});
   facebookLogin=new FacebookLogin({db:automation.db,password:process.env.APP_PASSWORD,appId:process.env.FACEBOOK_APP_ID,appSecret:process.env.FACEBOOK_APP_SECRET,pageId,version,publicUrl:process.env.PUBLIC_URL||process.env.RENDER_EXTERNAL_URL});
   automation.start();
   const server=createServer({automation,facebookLogin,getToken});

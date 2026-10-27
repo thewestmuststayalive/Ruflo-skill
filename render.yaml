@@ -23,11 +23,5 @@ services:
         generateValue: true
       - key: FACEBOOK_PAGE_ID
         value: "61595933881305"
-      - key: FACEBOOK_APP_ID
-        sync: false
-      - key: FACEBOOK_APP_SECRET
-        sync: false
-      - key: META_GRAPH_VERSION
-        sync: false
-      - key: AI_IMAGE_API_KEY
-        sync: false
+      - key: AUTO_IMAGES_ENABLED
+        value: "false"

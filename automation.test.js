@@ -12,7 +12,7 @@ test('three weekly evening slots follow Copenhagen daylight saving time',()=>{
   assert.equal(scheduleSlots(new Date('2026-11-01T00:00:00Z'),7).length,3);
 });
 const job=(a,id='test',due='2026-10-26T17:00:00.000Z')=>a.db.prepare('INSERT INTO jobs(id,due,topic,message) VALUES(?,?,?,?)').run(id,due,'basis','BW Bilpleje');
-const options={path:':memory:',ready:()=>true,now:()=>new Date('2026-10-26T17:01:00Z'),generateImage:async()=>'image',publish:async()=>({id:'posted'})};
+const options={imagesEnabled:true,path:':memory:',ready:()=>true,now:()=>new Date('2026-10-26T17:01:00Z'),generateImage:async()=>'image',publish:async()=>({id:'posted'})};
 
 test('automation defaults to paused and never posts without activation',async()=>{
   const a=new Automation({...options,publish:async()=>{assert.fail('must not publish');}});try{job(a);await a.tick();assert.equal(a.isEnabled(),false);assert.equal(a.db.prepare("SELECT state FROM jobs WHERE id='test'").get().state,'queued');}finally{a.close();}
@@ -45,4 +45,13 @@ test('pausing during image generation prevents subsequent Facebook publishing',a
   let release,started;const generated=new Promise(r=>started=r);const wait=new Promise(r=>release=r);
   const a=new Automation({...options,generateImage:async()=>{started();await wait;return'image';},publish:async()=>assert.fail('paused job must not publish')});
   try{job(a);a.enable();const tick=a.tick();await generated;a.setEnabled(false);release();await tick;assert.equal(a.db.prepare("SELECT state FROM jobs WHERE id='test'").get().state,'skipped');}finally{a.close();}
+});
+
+test('text-only automation publishes without generating or requiring images',async()=>{
+  let published;
+  const a=new Automation({...options,imagesEnabled:false,generateImage:async()=>assert.fail('must not call image API'),publish:async data=>{published=data;return{id:'text-post'};}});
+  try{job(a);a.enable();assert.equal(a.snapshot().imagesEnabled,false);await a.tick();assert.equal(published.image,undefined);assert.ok(published.message.includes('BASIS – 349 kr.'));assert.ok(!published.message.includes('AI-genereret'));assert.equal(a.db.prepare("SELECT state FROM jobs WHERE id='test'").get().state,'published');}finally{a.close();}
+});
+test('turning off images removes illustration labels from queued posts',()=>{
+  const a=new Automation({...options,imagesEnabled:false});try{job(a);a.db.prepare("UPDATE jobs SET message=message||' Billedet er en AI-genereret illustration.' WHERE id='test'").run();a.snapshot();assert.ok(!a.db.prepare("SELECT message FROM jobs WHERE id='test'").get().message.includes('AI-genereret'));}finally{a.close();}
 });

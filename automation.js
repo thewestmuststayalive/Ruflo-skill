@@ -17,9 +17,9 @@ export function scheduleSlots(now, days=28) {
 }
 
 export class Automation {
-  constructor({path, publish, generateImage, ready, now=()=>new Date()}) {
+  constructor({path, publish, generateImage, ready, imagesEnabled=false, now=()=>new Date()}) {
     if(path!==':memory:') mkdirSync(dirname(path),{recursive:true});
-    this.db=new DatabaseSync(path);this.publish=publish;this.generateImage=generateImage;this.ready=ready;this.now=now;this.running=false;
+    this.db=new DatabaseSync(path);this.publish=publish;this.generateImage=generateImage;this.ready=ready;this.now=now;this.running=false;this.imagesEnabled=imagesEnabled;
     this.db.exec(`PRAGMA journal_mode=WAL;
       CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, due TEXT NOT NULL, topic TEXT NOT NULL, message TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'queued', facebook_id TEXT, error TEXT);
@@ -33,11 +33,14 @@ export class Automation {
     for(const due of scheduleSlots(this.now())){
       const p=localParts(due);const id=`${p.year}-${p.month}-${p.day}`;
       const topic=topics[Math.floor(due.getTime()/86400000)%3];
-      this.db.prepare("INSERT OR IGNORE INTO jobs(id,due,topic,message) VALUES(?,?,?,?)").run(id,due.toISOString(),topic,makePost(topic)+'\n\nBilledet er en AI-genereret illustration.');
+      this.db.prepare("INSERT OR IGNORE INTO jobs(id,due,topic,message) VALUES(?,?,?,?)").run(id,due.toISOString(),topic,makePost(topic)+(this.imagesEnabled?'\n\nBilledet er en AI-genereret illustration.':''));
+    }
+    for(const job of this.db.prepare("SELECT id,topic FROM jobs WHERE state='queued'").all()){
+      this.db.prepare('UPDATE jobs SET message=? WHERE id=?').run(makePost(job.topic)+(this.imagesEnabled?'\n\nBilledet er en AI-genereret illustration.':''),job.id);
     }
   }
-  snapshot(){this.fillPlan();return {enabled:this.isEnabled(),ready:this.ready(),schedule:'Mandag, onsdag og fredag kl. 18 · dansk tid',jobs:this.db.prepare('SELECT * FROM jobs ORDER BY due DESC LIMIT 60').all().reverse()};}
-  enable(){if(!this.ready()) throw new Error('Facebook-adgang og API-nøgle til billeder skal konfigureres først.');if(this.db.prepare("SELECT id FROM jobs WHERE state='review' LIMIT 1").get())throw new Error('Kontrollér først opslag med ukendt resultat.');this.fillPlan();this.setEnabled(true);}
+  snapshot(){this.fillPlan();return {enabled:this.isEnabled(),ready:this.ready(),imagesEnabled:this.imagesEnabled,schedule:'Mandag, onsdag og fredag kl. 18 · dansk tid',jobs:this.db.prepare('SELECT * FROM jobs ORDER BY due DESC LIMIT 60').all().reverse()};}
+  enable(){if(!this.ready()) throw new Error(this.imagesEnabled?'Facebook-adgang og API-nøgle til billeder skal konfigureres først.':'Facebook-adgang skal konfigureres først.');if(this.db.prepare("SELECT id FROM jobs WHERE state='review' LIMIT 1").get())throw new Error('Kontrollér først opslag med ukendt resultat.');this.fillPlan();this.setEnabled(true);}
   resolve(id){this.db.prepare("UPDATE jobs SET state='dismissed',error='Kontrolleret manuelt; ingen automatisk genudgivelse.' WHERE id=? AND state='review'").run(id);}
   async tick(){
     if(this.running || !this.isEnabled())return;
@@ -53,7 +56,7 @@ export class Automation {
       const claim=this.db.prepare("UPDATE jobs SET state='publishing' WHERE id=? AND state='queued'").run(job.id);
       if(!claim.changes)return;
       let image;
-      try{image=await this.generateImage(job.topic);}catch{
+      try{if(this.imagesEnabled)image=await this.generateImage(job.topic);}catch{
         this.db.prepare("UPDATE jobs SET state='failed',error='Billedgenerering fejlede. Automatik er sat på pause; kontrollér API-adgang og saldo.' WHERE id=?").run(job.id);
         this.setEnabled(false);return;
       }
