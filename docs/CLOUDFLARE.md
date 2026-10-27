@@ -8,7 +8,7 @@ Gratisplanerne har forbrugs- og CPU-grænser. Behold Workers på Free, og godken
 
 1. Opret/log ind på [Cloudflare](https://dash.cloudflare.com/) og vælg en konto. Et eksisterende domæne skal ikke tilføjes.
 2. Åbn **Workers & Pages** og opret en **Worker** med import fra GitHub (ikke et Pages-projekt).
-3. Forbind `thewestmuststayalive/Ruflo-skill`, branch `main`. Brug Worker-navnet **bw-bilpleje**, så det matcher `wrangler.jsonc`.
+3. Forbind `thewestmuststayalive/Ruflo-skill`, branch `main`. Brug Worker-navnet **ruflo-skill**, så det matcher `wrangler.jsonc`.
 4. Installationskommando, hvis der er et felt: `npm ci`. Build-kommando kan være tom. Deploy-kommando: `npm run deploy:cloud`. Rodmappen er repositoryets rod. Wrangler er låst i `package-lock.json`.
 5. Deploy. Wrangler understøtter automatisk oprettelse/tilknytning af D1-databasen `bw-bilpleje-data` med bindingen `DB`. Godkend kun en gratis D1-oprettelse. Hvis Cloudflare ikke giver builden rettigheder til automatisk oprettelse, opret databasen under **Storage & Databases → D1**, tilføj dens ID i `wrangler.jsonc` som `database_id` og deploy igen; koden må ikke køre uden bindingen.
 6. Tilføj `APP_PASSWORD` som en **Secret** under Worker → **Settings → Variables and Secrets**. Vælg mindst 20 tegn. Gem/deploy ændringen. Åbn Workerens HTTPS-adresse, og log ind med brugernavn `admin` og denne adgangskode. Der udleveres ingen brugerflade, før adgangskoden er sat.
