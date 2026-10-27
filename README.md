@@ -2,6 +2,13 @@
 
 En webapp til BW Bilpleje i Slotsbjergby, Slagelse og omegn. Lav manuelle opslag, eller aktivér tre automatiske tekstopslag om ugen. Billedgenerering er valgfri og slået fra som standard. Kundernes booking foregår på **42 30 01 68** eller [Messenger](https://m.me/61595933881305).
 
+
+## Anbefalet: gratis hosting uden AI
+
+Cloudflare Workers Free + D1 Free er nu den valgte internetversion. Se [trinvis opsætning](docs/CLOUDFLARE.md). Den kræver ingen AI-konto og ingen Render-server. Cloudflare-versionen bruger gemt historik, Facebook-login og tre automatiske tekstopslag om ugen. Gratisplanernes grænser gælder; undlad betalte opgraderinger.
+
+Den tidligere Node/Render-version findes stadig til lokal udvikling og alternativ hosting. Instruktionerne nedenfor om Render og AI gælder denne alternative version. Aktiver kun én version for at undgå dobbelte opslag.
+
 ## Hvad den gør
 
 - Gemmer en rullende fireugers plan: mandag, onsdag og fredag kl. 18 i Europe/Copenhagen, inklusive sommer-/vintertid.
@@ -47,7 +54,7 @@ Når billedgenerering er aktiveret, indeholder automatiske opslag generiske AI-i
 
 ## Lokal udvikling / Windows
 
-Kræver **Node.js 24 eller nyere**. Ingen tredjeparts npm-afhængigheder.
+Kræver **Node.js 24 eller nyere**. Node-serveren kræver ingen tredjeparts-runtimeafhængigheder; Wrangler er et udviklingsværktøj til Cloudflare-versionen.
 
 På Windows: installér Node.js LTS (24+), hent og udpak repositoryet og dobbeltklik `Start-Windows.bat`. Hvis browseren åbner før serveren er klar, genindlæs siden. Behold kommandovinduet åbent.
 

@@ -3,18 +3,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { makePost } from './public/business.js';
 
-const zone = new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/Copenhagen',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23',minute:'2-digit',weekday:'short'});
-function localParts(date) { return Object.fromEntries(zone.formatToParts(date).map(p=>[p.type,p.value])); }
-export function scheduleSlots(now, days=28) {
-  const slots=[];
-  // Iterate UTC hours so both summer and winter time are handled by IANA timezone data.
-  const start=Math.floor(now.getTime()/3600000)*3600000;
-  for(let t=start;t<now.getTime()+days*86400000;t+=3600000){
-    const p=localParts(new Date(t));
-    if(t>now.getTime() && ['Mon','Wed','Fri'].includes(p.weekday) && p.hour==='18' && p.minute==='00') slots.push(new Date(t));
-  }
-  return slots;
-}
+import { localParts, scheduleSlots } from './schedule.js';
+export { scheduleSlots } from './schedule.js';
 
 export class Automation {
   constructor({path, publish, generateImage, ready, imagesEnabled=false, now=()=>new Date()}) {
