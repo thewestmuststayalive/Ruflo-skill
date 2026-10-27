@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: bw-bilpleje
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci --ignore-scripts
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: 'off'
+    disk:
+      name: bw-bilpleje-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /var/data
+      - key: APP_PASSWORD
+        generateValue: true
+      - key: FACEBOOK_PAGE_ID
+        value: "61595933881305"
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: META_GRAPH_VERSION
+        sync: false
+      - key: AI_IMAGE_API_KEY
+        sync: false
