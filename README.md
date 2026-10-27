@@ -30,3 +30,7 @@ npm test
 ```
 
 Testene bruger simulerede Facebook-svar og udgiver ikke rigtige opslag. Reel Facebook-udgivelse kræver brugerens sideadgang.
+
+## BW Bilplejes oplysninger
+
+Virksomhedens pakker, priser, tilvalg og bookingoplysninger ligger i `public/business.js`. Redigér denne fil, hvis priserne ændres. Opslagseditoren kan lave en samlet prisliste eller fokusere på en bestemt pakke. Det er faste tekstskabeloner; automatisk AI-billedgenerering og tidsstyret udgivelse er endnu ikke implementeret.

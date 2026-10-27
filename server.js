@@ -38,7 +38,7 @@ export function createServer({ token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN, p
         if (!id) return json(502,{error:'Facebook returnerede ingen opslag-ID. Kontrollér siden før et nyt forsøg.'});
         return json(200,{id});
       }
-      if (req.method === 'GET' && (req.url === '/' || req.url === '/app.js' || req.url === '/style.css')) {
+      if (req.method === 'GET' && (req.url === '/' || req.url === '/app.js' || req.url === '/style.css' || req.url === '/business.js')) {
         const file = req.url === '/' ? 'index.html' : req.url.slice(1);
         const content = await readFile(new URL(`./public/${file}`,import.meta.url));
         res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'"}); return res.end(content);
