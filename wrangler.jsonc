@@ -3,7 +3,9 @@
   "name": "ruflo-skill",
   "main": "cloud/worker.js",
   "compatibility_date": "2026-10-01",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "assets": {
     "directory": "./public",
@@ -11,8 +13,18 @@
     "run_worker_first": true
   },
   "d1_databases": [
-    {"binding": "DB", "database_name": "bw-bilpleje-data"}
+    {
+      "binding": "DB",
+      "database_name": "bw-bilpleje-data"
+    }
   ],
-  "triggers": {"crons": ["0 16,17 * * MON,WED,FRI"]},
-  "vars": {"FACEBOOK_PAGE_ID": "61595933881305"}
+  "triggers": {
+    "crons": [
+      "0 16,17 * * MON,WED,FRI"
+    ]
+  },
+  "vars": {
+    "FACEBOOK_PAGE_ID": "61595933881305",
+    "FACEBOOK_APP_ID": "2259129425039627"
+  }
 }
